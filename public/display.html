@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Fruit Kiosk Display</title>
+<style>
+html, body {
+  padding: 0px;
+  margin: 0px;
+  height: 100%;
+}
+#root {
+  position: relative;
+  height: 100%;
+  background-color: black;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}
+#root__instructions {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-family: sans-serif;
+  font-weight: bold;
+  font-size: 42px;
+}
+#root__summary {
+  position: absolute;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: black;
+  font-family: sans-serif;
+  font-weight: bold;
+  font-size: 42px;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<div id="root">
+  <div id="root__instructions">touch a fruit</div>
+  <div id="root__summary">
+    <span id="root__summary__text"></span><br />
+    <form id="root__summary__form">
+      <input id="root__summary__form__email" type="text"/ placeholder="john.doe@example.com">
+      <button type="submit">Email Details</button>
+    </form>
+  </div>
+</div>
+<script src="https://www.gstatic.com/firebasejs/3.7.5/firebase.js"></script>
+<script>
+  // INITIALIZE FIREBASE
+  var config = {
+    apiKey: "AIzaSyCr5GWf_WNSVnRF6oBvIt0FFaHFu8KYCXE",
+    authDomain: "fruit-kiosk.firebaseapp.com",
+    databaseURL: "https://fruit-kiosk.firebaseio.com",
+    projectId: "fruit-kiosk",
+    storageBucket: "fruit-kiosk.appspot.com",
+    messagingSenderId: "73507718012"
+  };
+  firebase.initializeApp(config);
+</script>
+<script>
+var rootEl = document.getElementById('root');
+var rootInstructionsEl = document.getElementById('root__instructions');
+var rootSummaryEl = document.getElementById('root__summary');
+var rootSummaryFormEl = document.getElementById('root__summary__form');
+var rootSummaryFormEmailEl = document.getElementById('root__summary__form__email');
+var rootSummaryTextEl = document.getElementById('root__summary__text');
+firebase.auth().onAuthStateChanged(function(user) {
+  if (user) {
+    var touched;
+    // EMAIL FORM SUBMIT
+    var emailsRef = firebase.database().ref('emails');
+    rootSummaryFormEl.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var email = rootSummaryFormEmailEl.value;
+      if (email === '') return;
+      emailsRef.push({
+        email: email,
+        touched: touched,
+      });
+      rootSummaryFormEmailEl.value = '';
+    });
+    // ON TOUCHED
+    var touchedRef = firebase.database().ref('touched');
+    touchedRef.on('value', function(snapTouched) {
+      touched = snapTouched.val();
+      if (touched === null) {
+        rootEl.style.backgroundImage = null;
+        rootSummaryTextEl.innerHTML = '';
+        rootSummaryEl.style.display = 'none';
+        rootInstructionsEl.style.display = 'block';
+        return;
+      }
+      var fruitRef = firebase.database().ref('fruits/' + touched);
+      fruitRef.once('value', function(snapFruit) {
+        var fruit = snapFruit.val();
+        rootInstructionsEl.style.display = 'none';
+        rootEl.style.backgroundImage = 'url(' + fruit.image + ')';
+        rootSummaryTextEl.innerHTML = fruit.summary;
+        rootSummaryEl.style.display = 'block';
+      });
+    });
+  } else {
+    // AUTHENTICATE
+    firebase.auth().signInWithEmailAndPassword(
+      'display@larkintuckerllc.com',
+      '[OBMITTED]'
+    );
+  }
+});
+</script>
+</body>
+</html>

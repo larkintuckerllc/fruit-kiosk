@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Fruit Kiosk Admin</title>
+</head>
+<body>
+<ul id="root">
+</ul>
+<script src="https://www.gstatic.com/firebasejs/3.7.5/firebase.js"></script>
+<script>
+  // INITIALIZE FIREBASE
+  var config = {
+    apiKey: "AIzaSyCr5GWf_WNSVnRF6oBvIt0FFaHFu8KYCXE",
+    authDomain: "fruit-kiosk.firebaseapp.com",
+    databaseURL: "https://fruit-kiosk.firebaseio.com",
+    projectId: "fruit-kiosk",
+    storageBucket: "fruit-kiosk.appspot.com",
+    messagingSenderId: "73507718012"
+  };
+  firebase.initializeApp(config);
+</script>
+<script>
+var rootEl = document.getElementById('root');
+firebase.auth().onAuthStateChanged(function(user) {
+  if (user) {
+    // LIST EMAILS
+    var emailsRef = firebase.database().ref('emails');
+    emailsRef.on('child_added', function(snap) {
+      var entry = snap.val();
+      var itemEl = document.createElement('li');
+      itemEl.innerHTML = entry.email + ' - ' + entry.touched;
+      rootEl.appendChild(itemEl);
+    })
+  } else {
+    // AUTHENTICATE
+    firebase.auth().signInWithEmailAndPassword(
+      'admin@larkintuckerllc.com',
+      '[OBMITTED]'
+    );
+  }
+});
+</script>
+</body>
+</html>
